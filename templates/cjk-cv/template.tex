@@ -1,0 +1,95 @@
+%% ============================================================================
+%%  中文简历模板（skeleton）— ai-job-search DeepSeek 版附带
+%% ============================================================================
+%%  用途：中文岗位投递用的 1 页简历骨架。上游自带的 moderncv / cover.cls 不含
+%%        中文字形，直接填中文会缺字，所以中文投递走这个模板。
+%%
+%%  编译：xelatex --interaction=nonstopmode --halt-on-error template.tex
+%%        （不要用 lualatex 走 moderncv 那条路；本模板用 ctexart + xeCJK）
+%%
+%%  字体：默认用 Windows 自带的「微软雅黑」。Linux/macOS 请改 \setCJKmainfont：
+%%        - macOS:  PingFang SC
+%%        - Linux:  Noto Sans CJK SC / Source Han Sans SC
+%%        - 或者统一用 TeX Live 自带的 FandolSong / FandolHei
+%%
+%%  占位符：所有 【...】 都要替换。不要留着占位符就去投。
+%%  英文投递请改回上游的 cv/main_example.tex（moderncv, lualatex）。
+%%
+%%  页数：应届生 / 经历较少 → 1 页；有多年履历 → 2 页。宁可删，不要挤。
+%% ============================================================================
+
+\documentclass[10.5pt,a4paper]{ctexart}
+
+\usepackage[scale=0.86]{geometry}
+\usepackage{xeCJK}
+\usepackage{fontspec}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+
+\definecolor{accent}{HTML}{1F4E79}
+
+% ---- 字体（按你的系统改这一行即可）----
+\setCJKmainfont{Microsoft YaHei}[BoldFont=Microsoft YaHei Bold]
+\setCJKsansfont{Microsoft YaHei}
+\setmainfont{Times New Roman}
+
+\titleformat{\section}{\large\bfseries\color{accent}}{}{0em}{}[\vspace{-2pt}\rule{\linewidth}{0.6pt}]
+\titlespacing*{\section}{0pt}{9pt}{5pt}
+\setlist[itemize]{leftmargin=1.2em,itemsep=1pt,topsep=2pt,parsep=0pt}
+\pagestyle{empty}
+
+%% 一条经历：{\entry{单位/学校}{时间}{职位/专业}{地点}}
+\newcommand{\entry}[4]{%
+  \noindent\textbf{#1}\hfill #2\\[1pt]
+  {\small #3 \hfill #4}\par\vspace{3pt}}
+
+\begin{document}
+
+% ============================== 抬头 ==============================
+\begin{center}
+  {\Huge\bfseries 【姓名】}\\[4pt]
+  {\small 求职意向：【目标岗位】\quad|\quad【性别】·【民族】·【政治面貌】·【出生年月】}\\[2pt]
+  {\small 电话 【手机号】\quad|\quad 邮箱 【邮箱】\quad|\quad【所在城市】}
+\end{center}
+
+\vspace{2pt}
+
+% ============================ 教育背景 ============================
+\section{教育背景}
+\entry{【学校】}{【入学年月】 -- 【毕业年月】}{【专业】（【学历】）}{【城市】}
+主修课程：【课程 1】、【课程 2】、【课程 3】、【课程 4】。【一句话补充：成绩排名 / 奖学金 / 在校实践。】
+
+% ========================== 实习与工作经历 ==========================
+% 应届生：实习在前、校内职务在后（或合并）。有多段实习就复制一组。
+\section{实习与工作经历}
+\entry{【公司名】}{【开始年月】 -- 【结束年月】}{【岗位】}{【城市】}
+\begin{itemize}
+  \item 【职责/成果 1：动词开头，写清做了什么、对象是谁、结果如何】
+  \item 【职责/成果 2】
+  \item 【职责/成果 3】
+  \item 【职责/成果 4】
+\end{itemize}
+
+\entry{【组织/公司名】}{【开始年月】 -- 【结束年月】}{【职务】}{【城市】}
+\begin{itemize}
+  \item 【职责/成果 1】
+  \item 【职责/成果 2】
+  \item 【职责/成果 3】
+\end{itemize}
+
+% ============================ 技能与证书 ============================
+\section{技能与证书}
+\begin{itemize}
+  \item \textbf{办公软件}：【如 Word、Excel、PowerPoint；具体到能做什么】
+  \item \textbf{语言能力}：【中文（母语）；英语 CET-4 / CET-6，读写/口语水平】
+  \item \textbf{综合能力}：【如沟通协调、活动组织、文字写作、档案管理】
+\end{itemize}
+
+% ============================= 自我评价 =============================
+% 可选。没有独特内容可以整段删掉，不要写空话套话。
+\section{自我评价}
+【2-3 句，说明你的工作方式与能给团队带来什么。不要写"吃苦耐劳""团队精神"这类无信息量的词。】
+
+\end{document}
