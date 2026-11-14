@@ -55,14 +55,27 @@ function Resolve-RepoPath([string]$explicit) {
   }
   $envRepo = $env:AI_JOB_SEARCH_REPO
   if ($envRepo -and (Test-Path $envRepo)) { return (Resolve-Path $envRepo).Path }
-  $d = (Get-Location).Path
-  while ($d) {
-    if (Test-Path (Join-Path $d 'tools\verify_pdf.py')) { return $d }
-    $p = Split-Path $d -Parent
-    if (-not $p -or $p -eq $d) { break }
-    $d = $p
+  # ① 安装成 DSH 技能后：技能目录里的 repo.txt 记录仓库位置（install 脚本写入）
+  $repoFile = Join-Path $PSScriptRoot '..\repo.txt'
+  if (Test-Path $repoFile) {
+    $p = (Get-Content $repoFile -Raw -ErrorAction SilentlyContinue)
+    if ($p) {
+      $p = $p.Trim()
+      if ((Test-Path $p) -and (Test-Path (Join-Path $p 'tools\verify_pdf.py'))) { return (Resolve-Path $p).Path }
+    }
   }
-  throw "找不到 ai-job-search 仓库根。请用 -Repo 指定，或设置环境变量 AI_JOB_SEARCH_REPO=<仓库路径>，或先 cd 到仓库目录再运行。"
+  # ② 直接运行仓库里的脚本：从脚本自身位置 / 当前目录向上找
+  foreach ($start in @($PSScriptRoot, (Get-Location).Path)) {
+    if (-not $start) { continue }
+    $d = $start
+    while ($d) {
+      if (Test-Path (Join-Path $d 'tools\verify_pdf.py')) { return $d }
+      $parent = Split-Path $d -Parent
+      if (-not $parent -or $parent -eq $d) { break }
+      $d = $parent
+    }
+  }
+  throw "找不到 ai-job-search 仓库根。请用 -Repo 指定，或设置环境变量 AI_JOB_SEARCH_REPO=<仓库路径>，或 cd 到仓库目录再运行。"
 }
 
 function Resolve-Bun {

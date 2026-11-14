@@ -24,7 +24,7 @@
 | 一键安装（install.ps1） | **PASS** — 11 个文件 + `repo.txt` 正确落盘 |
 | 脚本可移植性（换目录调用） | **PASS** — 从 `C:\` 用 `-Repo` 指定、仓库内自动定位均可 |
 
-**验证过程中发现并修复了 5 个真实缺陷**（见 §6）——这不是「写完就发」的仓库。
+**验证过程中发现并修复了 6 个真实缺陷**（见 §6）——这不是「写完就发」的仓库。
 
 ---
 
@@ -191,7 +191,21 @@ repo.txt          -> <REPO>
 
 **PASS** — 装到临时目录不影响真实技能；`repo.txt` 正确写入仓库路径。
 
-### 4.7 仓库 lint
+### 4.7 陌生人视角：全新克隆 → 安装 → 直接用
+
+模拟第一次使用的人，从 GitHub 重新 clone 一份，再走完整路径：
+
+```powershell
+git clone --depth 1 https://github.com/bianjiaojiao/ai-job-search-deepseek.git <tmp>
+powershell -ExecutionPolicy Bypass -File <tmp>\dsh\install.ps1 -Target <tmp-skill>
+# 从任意目录（C:\）直接调用已安装的技能，不传 -Repo
+powershell -ExecutionPolicy Bypass -File <tmp-skill>\scripts\compile.ps1 -Tex templates\cjk-cv\template.tex -Engine xelatex -Pages 1
+```
+
+结果：安装 11 个文件 + `repo.txt` 正确；编译 **xelatex → 1 页 PDF → pypdf 校验通过**。
+`repo.txt` 解析、UTF-8 BOM 经 git 往返保留，均已验证。
+
+### 4.8 仓库 lint
 
 ```powershell
 python tools\lint_skills.py
@@ -219,7 +233,7 @@ lint_skills: OK (9 skills, 12 commands, settings.json)
 
 ---
 
-## 6. 验证中发现并修复的缺陷（5 个）
+## 6. 验证中发现并修复的缺陷（6 个）
 
 这些是**真跑起来才暴露**的问题，均已修复后重新验证：
 
@@ -230,6 +244,7 @@ lint_skills: OK (9 skills, 12 commands, settings.json)
 | 3 | 脚本硬编码仓库路径 `C:\鲸鱼\ai-job-search` | 换机器/换目录必挂 | 改为 `repo.txt` → `AI_JOB_SEARCH_REPO` → 当前目录向上查找 三级解析 |
 | 4 | `install.ps1` 的 LaTeX 自检误报 MISS | 刚装完 LaTeX 的用户以为没装上 | 自检增加 MiKTeX 常见安装目录兜底探测 |
 | 5 | 中文模板/文档中的个人测试数据 | 发布版会带出虚构候选人档案 | 中文模板改为占位符骨架；发布版基于**干净的 upstream master**，不带任何本地 `/setup` 产物 |
+| 6 | 脚本装成技能后不读 `repo.txt` | 从任意目录调用（不传 `-Repo`、不设环境变量）时报「找不到仓库根」——**而这正是安装后的主用法** | 三个脚本的仓库解析补上 `repo.txt` 查找（顺序：`-Repo` → 环境变量 → 技能目录 `repo.txt` → 脚本位置/当前目录向上找）；已用「全新克隆 + 安装 + 从 C:\ 调用」复验通过 |
 
 > 另有一个**环境性**现象（非仓库缺陷）：在 DeepSeek Harness 里用管道捕获嵌套 `powershell.exe` 的输出会丢，需 `cmd /c ... > log 2>&1` 重定向。普通终端不受影响。
 
