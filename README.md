@@ -2,6 +2,13 @@
   <img src="assets/readme/hero.svg" alt="AI Job Search — DeepSeek 版" width="100%">
 </p>
 
+<p align="center">
+  <a href="https://github.com/bianjiaojiao/ai-job-search-deepseek/actions/workflows/ci.yml"><img src="https://github.com/bianjiaojiao/ai-job-search-deepseek/actions/workflows/ci.yml/badge.svg" alt="CI" height="20"></a>
+  &nbsp;
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-2A9D8F?style=flat" alt="MIT license" height="20"></a>
+  &nbsp;
+  <a href="docs/VERIFICATION.md"><img src="https://img.shields.io/badge/verified-948%20tests%20passed-2A9D8F?style=flat" alt="verified" height="20"></a>
+</p>
 <h1 align="center">ai-job-search · DeepSeek 版</h1>
 
 <p align="center">
