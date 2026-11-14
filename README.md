@@ -12,17 +12,18 @@
 <h1 align="center">ai-job-search · DeepSeek 版</h1>
 
 <p align="center">
-  <b>不用 Claude Code，也能跑完整个 AI 求职流水线</b><br>
-  在 <a href="https://github.com/ai-job-search-dev/ai-job-search">ai-job-search</a> 框架上做的
-  <b>DeepSeek Harness（DSH）原生适配版</b>，并补齐了上游缺的<b>中文求职链路</b>。
+  <b>一个给 harness 用户省 token 的 <a href="https://github.com/ai-job-search-dev/ai-job-search">ai-job-search</a> 适配层</b><br>
+  同一套上游求职工作流，换成 DeepSeek Harness（DSH）原生执行 —— <b>不重做产品，只换执行机制</b>。<br>
+  顺手补齐了上游缺的<b>中文求职链路</b>。
 </p>
 
 <p align="center">
   <a href="#-纯-ai-生成声明">AI 生成声明</a> ·
-  <a href="#为什么做这个版本">为什么做</a> ·
+  <a href="#出处upstream与署名">出处</a> ·
+  <a href="#定位给-harness-用户省-token的适配层">为什么省 token</a> ·
   <a href="#快速开始">快速开始</a> ·
+  <a href="#具体做了什么">具体做了什么</a> ·
   <a href="#中文求职怎么做">中文求职</a> ·
-  <a href="#与上游的差异">与上游差异</a> ·
   <a href="docs/VERIFICATION.md">验证报告</a>
 </p>
 
@@ -37,27 +38,59 @@
 > - 方式：无人工逐行编写，人工只给了目标与几条约束（不许编造、不许删除本机文件、中文要突出）
 > - 验证：生成后跑了仓库全量测试 + 真机端到端验证，结果见 [docs/VERIFICATION.md](docs/VERIFICATION.md)
 >
-> **上游框架 `ai-job-search` 不是本仓库产物**：它由原作者（Mads Lorentzen / [ai-job-search-dev](https://github.com/ai-job-search-dev)）用 Claude Code 构建，MIT 许可。本仓库是派生作品，**不是上游官方版本**，不代表上游维护者立场。上游 README 完整保留在 [README-upstream.md](README-upstream.md)。
+> **上游框架 `ai-job-search` 不是本仓库产物**（出处见下一节）。本仓库是派生作品，**不是上游官方版本**，不代表上游维护者立场。
 
 ---
 
-## 为什么做这个版本
+## 出处（Upstream）与署名
 
-上游框架有一个真实的门槛：**它绑定 Claude Code**。工作流写成 `.claude/commands/*.md` 的斜杠命令，依赖 Claude 专属工具（`Read`、`Bash`、`Agent`、`Skill`），并且需要付费订阅。
+**这个仓库不是原创产品。它的全部求职方法论、评分框架、命令规范、抓岗 CLI 都来自上游开源项目。**
 
-于是两部分人用不上它：
+| 项 | 值 |
+|---|---|
+| 上游项目名 | **ai-job-search** |
+| 上游仓库 | https://github.com/ai-job-search-dev/ai-job-search |
+| 原作者 | Mads Lorentzen（[ai-job-search-dev](https://github.com/ai-job-search-dev)），以 Claude Code 构建 |
+| 本仓库基线 | 上游 `master` @ `0d0d1a9`（`v1.7.5-28-g0d0d1a9`），**完整上游 git 历史已保留** |
+| 许可 | **MIT**（[LICENSE](LICENSE) 原样保留，上游版权声明未改） |
+| 上游 README | 完整保留为 [README-upstream.md](README-upstream.md) |
+| 上游抓岗 CLI 设计 | 源自 [Mikkel Krogholm 的 skills 仓库](https://github.com/mikkelkrogholm/skills) |
 
-1. 用 DeepSeek Harness / Codex / 其他代理工具的人；
-2. **中文求职者**——上游的模板、门户口径、评分习惯都是丹麦/英文市场的（4 个现成门户全是丹麦的，`moderncv`/`cover.cls` 不含中文字形，直接填中文会静默缺字）。
+**本仓库相对上游只做加法，不改上游规范文件：**
 
-这个版本解决的就是这两点，而且**不动上游一行规范**：
-
-- 上游 `.claude/commands/*.md`、`.claude/skills/*` 原样保留，是唯一权威依据；
-- 我们只加一层「执行机制替换」，`git pull upstream` 后规范自动同步、不会漂移。
+- `.claude/commands/`、`.claude/skills/`、`tools/`、`.agents/skills/`、`cv/`、`cover_letters/`、`CLAUDE.md` —— **一行未改**；
+- 新增的 `dsh/`（执行机制适配层）、`templates/cjk-cv/`（中文简历模板）、`docs/VERIFICATION.md`（验证报告）与本 README 是**由 AI 生成的增量**（声明见上一节）；
+- 想用原版、或想给原版贡献代码，请直接去上游仓库 —— **本仓库不替代上游**。
 
 ---
 
-## 三个卖点
+## 定位：给 harness 用户省 token 的适配层
+
+一句话：**同样的上游工作流，在 harness 上跑，token 更省。**
+
+上游工作流本身是经过验证的（作者用它投了 69 份、拿到 20 场一面），这套东西**没有必要重写**。它的问题只是外部成本：
+
+| 上游的隐性成本 | 具体表现 | 本层的做法 |
+|---|---|---|
+| **① 必须换工具/付费** | 绑定 Claude Code 斜杠命令 + 订阅额度；harness 用户用不了 | 换成 DSH 原生执行（`read`/`pwsh`/`subagent`），**继续用你已有的 harness 额度** |
+| **② 规范反复进上下文** | 上游 `.claude/` 下的命令与技能规范合计 **40 KB+**，一次性灌进去很贵 | 技能做**薄指针**：SKILL.md 只负责"路由"，执行到哪一步才读哪一份规范，不做全量注入 |
+| **③ 状态堆在对话里** | 抓岗/排序的历史越聊越长，每轮都重复计费 | 状态**外置落盘**（`job_scraper/seen_jobs.json`），由 `scrape_state.py` / `rank_state.py` 读写，不塞进上下文 |
+| **④ 长命令反复试错** | 每次手拼一条 10 个参数的命令，试错也是 token | 三个脚本把常用调用固化，一条命令搞定（见下节） |
+
+### 它省 token 的 4 个机制
+
+1. **薄指针，不复制上游正文** —— `dsh/SKILL.md` 只做「意图 → 该读哪份规范」的映射表；真正执行时才 `read` 对应的 `.claude/commands/*.md`。既省 token，也让 `git pull upstream` 后规范自动同步、不会漂移。
+2. **状态外置** —— 抓岗候选、去重历史、排序评分都落盘到 `job_scraper/seen_jobs.json`，用 `python tools/scrape_state.py` / `rank_state.py` 增删查，上下文里只留结论。
+3. **长文不进对话** —— JD 原文、评分表、公司研究缓存写成文件，对话里只引路径。
+4. **脚本固化调用** —— `scrape.cmd` / `compile.cmd` / `verify.cmd` 把多参数调用压成一行，少一轮试错就是少一轮 token。
+
+> **重要边界**：省 token **不等于省工序**。该跑的完整性闸门、编译、页数、ATS 文本层、排版校验一个都没省 —— 这些是本地命令，不花 token。功能与原版一致，质量不打折。
+>
+> 另外值得说清：**中文支持不是"再做一个产品"**，而是上游在非英语市场直接不可用（模板没有中文字形，填中文会静默丢字），补它是为了让上游工作流在中文场景真的能跑通。
+
+---
+
+## 具体做了什么
 
 ### 1. 中文求职全链路（上游没有）
 
@@ -74,7 +107,7 @@
 
 > 中文简历模板是**骨架 + 占位符**，不是某个人的简历。填完 `【...】` 才能投；`templates/cjk-cv/README.md` 有完整用法。
 
-### 2. DeepSeek Harness 原生，不依赖 Claude Code
+### 2. DSH 原生执行（不依赖 Claude Code，这是省 token 的前提）
 
 | 上游写法（Claude Code） | DSH 实际执行 |
 |---|---|
@@ -88,7 +121,7 @@
 
 技能装成 DSH 用户级技能后，在任意目录说「用 ai-job-search 帮我…」即可触发。
 
-### 3. 可移植 + 可验证
+### 3. 可移植 + 可验证（省的是"换机器重配"的时间）
 
 - **三条便捷脚本没有硬编码路径**：自动按 `repo.txt` → `AI_JOB_SEARCH_REPO` → 当前目录向上找 解析仓库根，换机器/换目录都能用。
 - **一键安装**：Windows `dsh/install.ps1`，macOS/Linux/WSL `dsh/install.sh`，只拷文件、不删任何东西、不联网。

@@ -5,7 +5,7 @@ description: 求职全流程 AI 工作流（建档 → 搜岗 → 匹配度评�
 
 # ai-job-search · DeepSeek / DSH 原生版
 
-本技能是 [ai-job-search](https://github.com/ai-job-search-dev/ai-job-search) 框架在 **DeepSeek Harness（DSH）** 上的适配层。
+本技能是 [ai-job-search](https://github.com/ai-job-search-dev/ai-job-search) 框架在 **DeepSeek Harness（DSH）** 上的适配层。它的定位是**给 harness 用户省 token**：不重做产品，只把上游那套已验证的工作流换成 DSH 能执行的机制，并让规范按需读取（薄指针）、状态外置落盘，避免把 40 KB+ 的上游规范和抓岗历史反复灌进上下文。
 上游框架原本写给 Claude Code（`/setup`、`/apply` 等斜杠命令），本技能把那些命令的机制换成 DSH 的工具与约定，而**不复制上游正文**——工作流的规范始终以仓库里的原始文件为准，`git pull` 后不会漂移。
 
 > **生成方式声明**：本适配层（SKILL.md、references/、scripts/、install 脚本）由 AI（DeepSeek Harness 上的编码代理）全自动生成并实测验证。上游框架本身由 ai-job-search 原作者维护，MIT 许可。
